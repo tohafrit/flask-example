@@ -4,48 +4,65 @@ services:
   nginx:
     image: nginx
     restart: always
-    container_name: nginx_container
     volumes:
       - ./services/nginx/config/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - 80:80
     networks:
-      - web_nw
+      - front_nw
 
-  python:
+  backend:
     restart: always
-    build:
-      context: .
-      dockerfile: services.python.Dockerfile
+    build: ./services/backend
     deploy:
       mode: replicated
       replicas: 3
+    secrets:
+      - db-root-password
+      - db-password
     networks:
-      - db_nw
-      - web_nw
+      - backend_nw
+      - front_nw
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file: .env.sample
     volumes:
-      - ./logs/python:/logs
+      - ./logs/backend:/code/logs
 
   db:
-    image: mysql
+    image: mysql:8.0.32
     restart: always
     command: --default-authentication-plugin=mysql_native_password
     env_file: .env.db-sample
     networks:
-      - db_nw
+      - backend_nw
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h localhost --password="$$(cat $${MYSQL_ROOT_PASSWORD_FILE})" --silent']
+      interval: 3s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./services/mysql/config/log.cnf:/etc/mysql/conf.d/log.cnf
       - ./logs/mysql:/var/log/mysql
+      - ./services/mysql/sql:/docker-entrypoint-initdb.d/
       - db-store:/var/lib/mysql
+    secrets:
+      - db-root-password
+      - db-password
+    expose:
+      - 3306
+      - 33060
 
 networks:
-  db_nw:
-    driver: bridge
-  web_nw:
-    driver: bridge
+  backend_nw:
+  front_nw:
+
+secrets:
+  db-root-password:
+    file: ./services/mysql/sensitive/db-root-password.txt
+  db-password:
+    file: ./services/mysql/sensitive/db-password.txt
 
 volumes:
   db-store:
