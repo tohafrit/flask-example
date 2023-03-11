@@ -60,8 +60,8 @@ def main():
 
     cookie_key = 'internal_ip'
     resp = make_response(internal_ip)
-    if request.cookies.get(f'{cookie_key}_{internal_ip}') != internal_ip:
-        resp.set_cookie(f'{cookie_key}_{internal_ip}', internal_ip, 5 * 60)
+    if request.cookies.get(cookie_key) != internal_ip:
+        resp.set_cookie(cookie_key, internal_ip, 5 * 60)
 
     return resp
 
