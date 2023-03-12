@@ -68,7 +68,7 @@ def main():
 @app.route('/showcount')
 def showcount():
     app.logger.info('Showcount page')
-    global conn, counter
+    global conn
     if not conn:
         conn = DBManager()
 
