@@ -49,19 +49,19 @@ counter = 1
 @app.route('/')
 def main():
     app.logger.info('Main page')
+    internal_ip = socket.gethostbyname(socket.gethostname())
+
+    cookie_key = 'internal_ip'
+    resp = make_response(internal_ip)
+    if request.cookies.get(cookie_key) != internal_ip:
+        resp.set_cookie(cookie_key, internal_ip, 1 * 60)
+
     global conn, counter
     if not conn:
         conn = DBManager()
 
     counter = counter + 1
-    internal_ip = socket.gethostbyname(socket.gethostname())
-
     conn.increase(counter, strftime('%Y-%m-%d %H:%M:%S'), request.remote_addr, internal_ip)
-
-    cookie_key = 'internal_ip'
-    resp = make_response(internal_ip)
-    if request.cookies.get(cookie_key) != internal_ip:
-        resp.set_cookie(cookie_key, internal_ip, 5 * 60)
 
     return resp
 

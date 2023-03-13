@@ -10,6 +10,8 @@ services:
       - 80:80
     networks:
       - front_nw
+    depends_on: 
+      - backend
 
   backend:
     restart: always
