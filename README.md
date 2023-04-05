@@ -1,3 +1,2 @@
-# Homework
-
-Build the images and run the containers.
+# Test
+Example with docker-compose - flask, mysql and nginx
